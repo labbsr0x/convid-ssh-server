@@ -1,2 +1,2 @@
 auth required pam_exec.so stdout debug expose_authtok /test.sh
-auth required pam_unix.so
+auth required pam_permit.so

@@ -9,4 +9,4 @@ echo "PAM_USER $PAM_USER"
 echo "PAM_TYPE $PAM_TYPE"
 echo "password $password"
 
-exit 1
+exit 0
