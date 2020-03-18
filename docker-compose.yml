@@ -1,0 +1,12 @@
+version: '3.5'
+
+services:
+
+  convid-ssh-server:
+    build: .
+    image: labbsr0x/convid-ssh-server
+    ports:
+      - "2222:22"
+    environment:
+      - LOG_LEVEL=debug
+
