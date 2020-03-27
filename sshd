@@ -1,4 +1,0 @@
-auth    sufficient          pam_exec.so stdout debug expose_authtok /check-account.sh
-auth    [success=1 default=ignore]  pam_unix.so nullok_secure
-auth    requisite           pam_deny.so
-auth    required            pam_permit.so

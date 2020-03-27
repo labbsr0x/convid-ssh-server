@@ -5,6 +5,8 @@ SSH server for supporting Convid communications between NAT'd stations with NAT'
 
 * Create a docker-compose.yml file
 
+* Follow instructions at http://github.com/flaviostutz/ssh-jwt on how to create JWT public, private keys and tokens
+
 ```yml
 version: '3.5'
 services:
@@ -14,15 +16,20 @@ services:
       - "2222:22"
     environment:
       - LOG_LEVEL=debug
-      - ACCOUNTS_API_URL=http://simple-file-server:4000
+      - REGISTRY_ETCD_URL=http://etcd0:2379
+      - JWT_ALGORITHM=RS512
+      - JWT_KEY_SECRET_NAME=rs-pub-key
+      - ENABLE_LOCAL_FORWARDING=true
+      - ENABLE_REMOTE_FORWARDING=true
+      - ENABLE_PTY=true
+    restart: always
 
-  simple-file-server:
-    image: flaviostutz/simple-file-server
-    ports:
-      - "4000:4000"
+  etcd0:
+    image: quay.io/coreos/etcd:v3.2.25
     environment:
-      - LOG_LEVEL=info
-      - LOCATION_BASE_URL=http://localhost:4000
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd0:2379
+    restart: always
 ```
 
 * Run
@@ -46,6 +53,20 @@ ssh 9c707773-3360-4460-923b-f919c63ce20b@localhost -p 2222 -L 12345:localhost:23
 * Use accountId as password. Ex.: "23456"
 
 * You should see something like "Auth succeeded for user '9c707773-3360-4460-923b-f919c63ce20b'"
+
+
+## Usage - complete example
+
+* Run [/docker-compose.yml](docker-compose.yml) with by cloning this repo and then ```docker-compose up```
+
+* Scale ssh-server with ```docker-compose scale convid-ssh-server=5```
+
+* Open http://localhost:5000 and double click on nodes until you see all registered nodes in ETCD
+
+* Open http://localhost:3000/config/ABC123 to view the supposed configuration returned to a client identified by ABC123
+
+* Try other client identifications and see how publicPort changes depending on the client Id
+
 
 ## Development annotations
 

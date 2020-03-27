@@ -6,15 +6,57 @@ services:
     build: .
     image: labbsr0x/convid-ssh-server
     ports:
-      - "2222:22"
+      - "22"
+    secrets:
+      - rs-pub-key
     environment:
       - LOG_LEVEL=debug
-      - ACCOUNTS_API_URL=http://simple-file-server:4000
+      - REGISTRY_ETCD_URL=http://etcd0:2379
+      - JWT_ALGORITHM=RS512
+      - JWT_KEY_SECRET_NAME=rs-pub-key
+      - ENABLE_LOCAL_FORWARDING=true
+      - ENABLE_REMOTE_FORWARDING=true
+      - ENABLE_PTY=true
+    labels: 
+      - "publicIp=222.33.44.55"
+    restart: always
 
-  simple-file-server:
-    image: flaviostutz/simple-file-server
-    ports:
-      - "4000:4000"
+  etcd0:
+    image: quay.io/coreos/etcd:v3.2.25
     environment:
-      - LOG_LEVEL=info
-      - LOCATION_BASE_URL=http://localhost:4000
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd0:2379
+    restart: always
+
+  docker-info:
+    image: flaviostutz/docker-info
+    environment:
+      - LOG_LEVEL=debug
+      - CACHE_TIMEOUT=-1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 5000:5000
+    restart: always
+
+  etcd3-lucas:
+    image: registry.cn-hangzhou.aliyuncs.com/ringtail/lucas:0.0.1
+    ports:
+      - 8888:8080
+    environment:
+      - ENDPOINTS=http://etcd0:2379
+    restart: always
+
+  etcd-hashring:
+    image: flaviostutz/etcd-hashring:v1.0.0
+    ports:
+      - "3000:3000"
+    restart: always
+    environment:
+      - LOG_LEVEL=debug
+      - ETCD_URL=http://etcd0:2379
+      - ETCD_SERVICE_PATH=/registry/convid-ssh-server
+
+secrets:
+  rs-pub-key:
+    file: ./test_rsa.pub
